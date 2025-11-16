@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI Inventor's Mission</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for simple sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* Custom font and base styling for a friendly look */
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .title-font {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 0.1em;
+        }
+        .storybook-card {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+        .story-text {
+            line-height: 1.6;
+            min-height: 150px; /* Ensures consistent card height */
+        }
+        .next-button {
+            transition: all 0.1s ease-in-out;
+            transform: scale(1);
+        }
+        .next-button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 15px rgba(253, 186, 116, 0.5);
+        }
+        /* Style for the interactive mission buttons */
+        .mission-button {
+            transition: all 0.2s ease;
+        }
+        .mission-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<!-- FIX: Removed flex classes from body and added centering classes to the container for stable, single-column layout. -->
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div id="storybook-container" class="w-full max-w-2xl mx-auto">
+        <div class="storybook-card">
+            <h1 class="text-4xl md:text-5xl text-center title-font text-orange-500 mb-6" id="story-title"></h1>
+            
+            <div id="story-content">
+                <!-- Content will be injected here -->
+            </div>
+
+            <!-- Navigation and Controls -->
+            <div class="mt-8 flex justify-between items-center">
+                <button id="prev-button" onclick="prevPage()" class="px-4 py-2 text-sm font-bold rounded-lg text-gray-600 bg-gray-200 hover:bg-gray-300 transition duration-150 ease-in-out hidden">
+                    &larr; Back
+                </button>
+                <div id="page-indicator" class="text-sm font-semibold text-gray-500"></div>
+                <button id="next-button" onclick="nextPage()" 
+                        class="next-button px-6 py-3 font-extrabold rounded-full text-white bg-green-500 hover:bg-green-600 shadow-lg shadow-green-200 focus:outline-none focus:ring-4 focus:ring-green-300 ml-auto">
+                    START MISSION
+                </button>
+            </div>
+            
+            <!-- School Footer: Displayed on all pages within the card -->
+            <div id="school-footer" class="mt-8 pt-4 border-t border-gray-200 text-center text-xs text-gray-400 font-semibold">
+                Beaconhouse School System, Satellite Town Gujranwala
+            </div>
+        </div>
+        
+        <!-- Custom Modal for category details -->
+        <div id="modal-popup" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border-t-8 border-yellow-500">
+                <h3 id="modal-title" class="text-2xl font-bold text-yellow-600 mb-3 title-font"></h3>
+                <div id="modal-icon" class="text-4xl mb-4"></div>
+                <p id="modal-text" class="text-gray-700 story-text"></p>
+                <button onclick="closeModal()" class="mt-6 w-full py-2 font-bold rounded-xl text-white bg-blue-500 hover:bg-blue-600 transition">
+                    Got It! Back to the Mission
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentPage = 0;
+
+        // Setup a simple synth for button clicks (Tone.js)
+        let synth = new Tone.Synth({
+            oscillator: { type: "square" },
+            envelope: { release: 0.1 }
+        }).toDestination();
+
+        function playClickSound() {
+            // Play a quick, friendly 'pop' sound
+            Tone.start();
+            synth.triggerAttackRelease("C5", "8n");
+        }
+        
+        // Define the story pages (10 pages total, indices 0-9)
+        const storyPages = [
+            // Page 0: Introduction 
+            {
+                title: "Welcome, Young Inventor!",
+                content: `
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-gray-800 mb-4">WAICY 2025 Coordinator: Ms Sehrish Akram</p>
+                        <p class="text-xl font-bold text-blue-600 mt-4">This is a secret mission briefing!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            
+                            Your mission is simple: <strong>use your imagination and technology to solve a real-world problem.</strong>
+                        </p>
+                    </div>
+                `,
+                nextText: "Accept Mission"
+            },
+            // Page 1: What is AI?
+            {
+                title: "What is AI?",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-green-600 mt-4">AI means Artificial Intelligence.</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            Think of AI as a <strong>Super-Smart Helper</strong> inside a computer. 
+                            It learns from information, like you learn at school, and then uses that knowledge to make smart decisions,
+                            like finding the fastest route home or translating a new language!
+                        </p>
+                    </div>
+                `,
+                nextText: "Phase 1: The Detective"
+            },
+            // Page 2: Phase 1: Problem Finding
+            {
+                title: "Phase 1: The Detective",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-red-600 mt-4">The first step is finding a problem!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            Put on your detective hat! Look around your school, home, or community. 
+                            Is there something confusing, wasteful, or unfair? 
+                            A good inventor solves a real problem, so write down three things you wish were better!
+                        </p>
+                    </div>
+                `,
+                nextText: "Phase 2: The AI Recipe"
+            },
+            // Page 3: Phase 2: Data/Training
+            {
+                title: "Phase 2: The AI Recipe",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-yellow-600 mt-4">AI needs ingredients, called Data.</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            If you want an AI to spot cats, you must show it thousands of cat pictures! 
+                            This is called <strong>training</strong>. The better the data you give your AI, the smarter and more helpful its solution will be!
+                        </p>
+                    </div>
+                `,
+                nextText: "The Mission Goal"
+            },
+            // Page 4: The Mission Goal
+            {
+                title: "The Mission Goal",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-orange-600 mt-4">Find a problem, use AI to fix it!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            Your job is to take the problem you found and the AI recipe (data) you collected,
+                            and invent a solution. You can work alone or with a team of up to 4 friends!
+                        </p>
+                    </div>
+                `,
+                nextText: "Discover Your Superpowers"
+            },
+            // Page 5: Your Four Superpowers!
+            {
+                title: "Your Four Superpowers!",
+                content: `
+                    <p class="text-xl font-bold text-purple-600 text-center mb-4">You have 4 incredible ways to use AI:</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="mission-button p-3 md:p-4 bg-red-100 rounded-xl text-red-700 border-2 border-red-400 font-bold" onclick="showCategory(0)">
+                            🤖 Inventor's Showcase
+                        </button>
+                        <button class="mission-button p-3 md:p-4 bg-blue-100 rounded-xl text-blue-700 border-2 border-blue-400 font-bold" onclick="showCategory(1)">
+                            🎨 Art Quest
+                        </button>
+                        <button class="mission-button p-3 md:p-4 bg-green-100 rounded-xl text-green-700 border-2 border-green-400 font-bold" onclick="showCategory(2)">
+                            💬 Chatbot Creator
+                        </button>
+                        <button class="mission-button p-3 md:p-4 bg-yellow-100 rounded-xl text-yellow-700 border-2 border-yellow-400 font-bold" onclick="showCategory(3)">
+                            🎬 Video Adventure
+                        </button>
+                    </div>
+                    <p class="text-center text-gray-600 mt-4 story-text">Click a button to learn about each superpower!</p>
+                `,
+                nextText: "Phase 3: The Build"
+            },
+            // Page 6: Phase 3: Building Your Invention
+            {
+                title: "Phase 3: Building Your Invention",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-blue-600 mt-4">This is the fun part: inventing!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            Depending on your superpower, you might be designing an app on paper, 
+                            writing simple code, creating awesome AI art, or training your chatbot. 
+                            Test your project and make sure it solves the problem for your users!
+                        </p>
+                    </div>
+                `,
+                nextText: "Phase 4: Presentation"
+            },
+            // Page 7: Phase 4: The Grand Presentation
+            {
+                title: "Phase 4: The Grand Presentation",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-red-600 mt-4">Show the world your magic!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            When your project is done, you'll record a video to explain your mission and how your AI invention works. 
+                            If you are selected as a finalist, you may get to present it live to the judges in early <strong>December</strong>!
+                        </p>
+                    </div>
+                `,
+                nextText: "Mission Debrief"
+            },
+            // Page 8: Mission Debrief
+            {
+                title: "Mission Debrief",
+                content: `
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-green-500 mt-4">Mission understood: You are ready to invent!</p>
+                        <p class="text-lg text-gray-700 mt-2 story-text">
+                            You know the mission, the phases, and your superpowers. Now, all that's left is the final registration!
+                        </p>
+                        <p class="text-sm font-semibold text-gray-500 mt-4">
+                            The final submission deadline is extended till <strong>November 28, 2025</strong>.
+                        </p>
+                    </div>
+                `,
+                nextText: "Final Registration"
+            },
+            // Page 9: Mission Complete: Registration (Updated with Inspiration Link)
+            {
+                title: "✅ Mission Complete: Next Steps",
+                content: `
+                    <!-- Registration Call-to-Action -->
+                    <div class="mt-4 p-6 bg-yellow-100 border-2 border-yellow-400 rounded-xl text-center mb-6">
+                        <p class="text-xl font-bold text-yellow-800 mb-4">
+                            Your journey as an AI inventor begins now!
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            If you have <strong>already submitted your registration</strong> at the form below, then be ready for the WAICY session in school!
+                            If you have <strong>not registered yet</strong>, register now to unleash your full potential!
+                        </p>
+                        <a href="https://forms.gle/RBekDc2DmVUN698g8" target="_blank" class="inline-block px-8 py-3 text-lg font-extrabold rounded-xl text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 transition duration-150">
+                            REGISTRATION FORM LINK
+                        </a>
+                    </div>
+                    
+                    <!-- Inspiration Link -->
+                    <div class="p-4 bg-blue-100 border-2 border-blue-400 rounded-xl text-center">
+                        <p class="text-lg font-semibold text-blue-800 mb-3">
+                            Need inspiration? Check out past WAICY projects!
+                        </p>
+                        <a href="https://www.waicy.org/resources/" target="_blank" class="inline-block px-6 py-2 text-base font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition duration-150">
+                            View Project Resources &rarr;
+                        </a>
+                    </div>
+                `,
+                nextText: "The End" // Changed for finality
+            }
+        ];
+
+        // Define the details for the 4 categories (Superpowers)
+        const categories = [
+            {
+                title: "Inventor's Showcase",
+                icon: "🤖",
+                description: "This is the main invention mission! You will <strong>build</strong> a working AI program, like a simple app or game, or design a smart robot that uses AI to solve your chosen problem. You are the architect!"
+            },
+            {
+                title: "Art Quest",
+                icon: "🎨",
+                description: "If you love to draw, this is for you! You will use special AI tools (like magic paintbrushes) that turn your words into incredible, unique pictures and artwork based on the competition's theme."
+            },
+            {
+                title: "Chatbot Creator",
+                icon: "💬",
+                description: "You get to train a powerful AI, like a <strong>Large Language Model</strong>, to become an expert! You'll teach it everything about one topic—maybe planets, history, or cooking—to create your own super-smart talking friend."
+            },
+            {
+                title: "Video Adventure",
+                icon: "🎬",
+                description: "Lights, Camera, AI! Use AI tools to help you create a short, exciting video. You can use it to explain the problem you found and show everyone how your AI idea is the perfect solution. You are the director!"
+            }
+        ];
+        
+        // --- Storybook Navigation Functions (Modified for 10 pages) ---
+
+        function updateStory() {
+            const totalPages = storyPages.length; // 10 pages total
+            
+            // Ensure bounds
+            if (currentPage < 0) currentPage = 0;
+            if (currentPage >= totalPages) {
+                currentPage = totalPages - 1;
+            }
+
+            const page = storyPages[currentPage];
+            
+            // 1. Update Title and Content
+            document.getElementById('story-title').innerHTML = page.title;
+            document.getElementById('story-content').innerHTML = page.content;
+
+            // 2. Update Navigation Buttons
+            const nextButton = document.getElementById('next-button');
+            const prevButton = document.getElementById('prev-button');
+            const pageIndicator = document.getElementById('page-indicator');
+            
+            nextButton.textContent = page.nextText;
+
+            // Show/Hide Previous Button
+            if (currentPage > 0) {
+                prevButton.classList.remove('hidden');
+            } else {
+                prevButton.classList.add('hidden');
+            }
+
+            // Handle final page styling: Hide the next button on the last page (9)
+            if (currentPage === totalPages - 1) {
+                nextButton.classList.add('hidden'); // Hide the button on the very last page
+            } else {
+                nextButton.classList.remove('hidden');
+                // Apply standard styling for non-final pages
+                nextButton.classList.add('bg-green-500', 'hover:bg-green-600', 'shadow-green-200');
+                nextButton.classList.remove('bg-orange-500', 'hover:bg-orange-600', 'shadow-orange-200');
+            }
+
+            // Also check the page *before* the final one (page 8, Mission Debrief)
+            if (currentPage === totalPages - 2) {
+                // Style for the button leading TO the Final Registration page
+                nextButton.classList.remove('bg-green-500', 'hover:bg-green-600', 'shadow-green-200');
+                nextButton.classList.add('bg-orange-500', 'hover:bg-orange-600', 'shadow-orange-200');
+            } else if (currentPage < totalPages - 2) {
+                // Default style for early pages
+                nextButton.classList.remove('bg-orange-500', 'hover:bg-orange-600', 'shadow-orange-200');
+                nextButton.classList.add('bg-green-500', 'hover:bg-green-600', 'shadow-green-200');
+            }
+            
+            // Update Page Indicator
+            pageIndicator.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+        }
+
+        function nextPage() {
+            playClickSound();
+            if (currentPage < storyPages.length - 1) {
+                currentPage++;
+                updateStory();
+            }
+        }
+
+        function prevPage() {
+            playClickSound();
+            if (currentPage > 0) {
+                currentPage--;
+                updateStory();
+            }
+        }
+
+        function showCategory(index) {
+            playClickSound();
+            const category = categories[index];
+            document.getElementById('modal-title').textContent = category.title;
+            document.getElementById('modal-icon').innerHTML = category.icon;
+            document.getElementById('modal-text').innerHTML = category.description; // Using innerHTML for bold tags
+            document.getElementById('modal-popup').classList.remove('hidden');
+            document.getElementById('modal-popup').classList.add('flex');
+        }
+
+        function closeModal() {
+            playClickSound();
+            document.getElementById('modal-popup').classList.add('hidden');
+            document.getElementById('modal-popup').classList.remove('flex');
+        }
+
+        // Initialize story when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStory();
+        });
+    </script>
+</body>
+</html>
